@@ -1,103 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Email Verification</title>
-    <style>
-        body{
-            font-family:Arial,sans-serif;
-            background:#141414;
-            color:white;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot</title>
 
-        .box{
-            background:#222;
-            padding:30px;
-            border-radius:10px;
-            width:350px;
-            text-align:center;
-        }
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(to bottom, #87ceeb, #dff6ff);
+        overflow: hidden;
+    }
 
-        input{
-            width:100%;
-            padding:12px;
-            margin:10px 0;
-            border:none;
-            border-radius:5px;
-        }
+    .robot {
+        position: relative;
+    }
 
-        button{
-            width:100%;
-            padding:12px;
-            background:#e50914;
-            color:white;
-            border:none;
-            border-radius:5px;
-            cursor:pointer;
-        }
+    /* Head */
+    .head {
+        width: 160px;
+        height: 120px;
+        background: #c0c0c0;
+        border-radius: 20px;
+        position: relative;
+        border: 4px solid #555;
+    }
 
-        #verifySection{
-            display:none;
-        }
-    </style>
+    .eye {
+        width: 20px;
+        height: 20px;
+        background: cyan;
+        border-radius: 50%;
+        position: absolute;
+        top: 40px;
+        box-shadow: 0 0 15px cyan;
+    }
+
+    .eye.left {
+        left: 40px;
+    }
+
+    .eye.right {
+        right: 40px;
+    }
+
+    .mouth {
+        width: 70px;
+        height: 10px;
+        background: #444;
+        position: absolute;
+        bottom: 25px;
+        left: 45px;
+        border-radius: 5px;
+    }
+
+    .antenna {
+        width: 6px;
+        height: 30px;
+        background: #555;
+        position: absolute;
+        top: -30px;
+        left: 77px;
+    }
+
+    .antenna::before {
+        content: "";
+        width: 16px;
+        height: 16px;
+        background: red;
+        border-radius: 50%;
+        position: absolute;
+        top: -12px;
+        left: -5px;
+    }
+
+    /* Body */
+    .body {
+        width: 180px;
+        height: 180px;
+        background: #b0b0b0;
+        margin: 10px auto;
+        border-radius: 20px;
+        border: 4px solid #555;
+        position: relative;
+    }
+
+    .panel {
+        width: 80px;
+        height: 40px;
+        background: #666;
+        position: absolute;
+        top: 30px;
+        left: 50px;
+        border-radius: 10px;
+    }
+
+    /* Arms */
+    .arm {
+        width: 70px;
+        height: 12px;
+        background: #777;
+        position: absolute;
+        top: 70px;
+    }
+
+    .arm.left {
+        left: -70px;
+        transform: rotate(20deg);
+    }
+
+    .arm.right {
+        right: -70px;
+        transform: rotate(-20deg);
+    }
+
+    /* Legs */
+    .leg {
+        width: 18px;
+        height: 80px;
+        background: #777;
+        position: absolute;
+        bottom: -80px;
+    }
+
+    .leg.left {
+        left: 55px;
+    }
+
+    .leg.right {
+        right: 55px;
+    }
+</style>
 </head>
+
 <body>
-
-<div class="box">
-
-    <h2>Email Verification</h2>
-
-    <div id="emailSection">
-        <input type="email" id="email" placeholder="Enter Gmail Address">
-        <button onclick="sendCode()">Send Code</button>
+<div class="robot">
+    <div class="head">
+        <div class="antenna"></div>
+        <div class="eye left"></div>
+        <div class="eye right"></div>
+        <div class="mouth"></div>
     </div>
 
-    <div id="verifySection">
-        <input type="text" id="otp" placeholder="Enter Verification Code">
-        <button onclick="verifyCode()">Verify</button>
+    <div class="body">
+        <div class="panel"></div>
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+        <div class="leg left"></div>
+        <div class="leg right"></div>
     </div>
-
-    <p id="message"></p>
-
 </div>
-
-<script>
-let generatedCode;
-
-function sendCode() {
-    const email = document.getElementById("email").value;
-
-    if (!email.endsWith("@gmail.com")) {
-        alert("Please enter a valid Gmail address");
-        return;
-    }
-
-    generatedCode = Math.floor(100000 + Math.random() * 900000);
-
-    alert(
-      "Demo Mode\\nVerification Code: " + generatedCode
-    );
-
-    document.getElementById("verifySection").style.display = "block";
-    document.getElementById("message").innerText =
-      "Verification code generated.";
-}
-
-function verifyCode() {
-    const entered = document.getElementById("otp").value;
-
-    if (entered == generatedCode) {
-        document.getElementById("message").innerHTML =
-          "✅ Email Verified Successfully!";
-    } else {
-        document.getElementById("message").innerHTML =
-          "❌ Invalid Code";
-    }
-}
-</script>
-
 </body>
 </html>
