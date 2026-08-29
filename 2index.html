@@ -1,24 +1,184 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Calculator</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f2f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .calculator {
+            background: white;
+            width: 400px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 13px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 10px;
+        }
+
+        .result p {
+            font-size: 17px;
+            margin: 10px 0;
+        }
+
+        .error {
+            color: red;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+
 <body>
 
-<pre>
-        _____
-       | o o |
-       |  ^  |
-       | '-' |
-       |_____|
-      /|     |\
-     / |_____| \
-       |     |
-       |     |
-      /|     |\
-     /_|_____|_\
-        | |
-        | |
-       /   \
-      /_____\
-</pre>
+    <div class="calculator">
+
+        <h1>Loan Calculator</h1>
+
+        <label for="amount">Loan Amount (₹)</label>
+        <input type="number" id="amount" placeholder="Enter loan amount">
+
+        <label for="rate">Annual Interest Rate (%)</label>
+        <input type="number" id="rate" placeholder="Enter interest rate">
+
+        <label for="years">Loan Tenure (Years)</label>
+        <input type="number" id="years" placeholder="Enter loan tenure">
+
+        <button onclick="calculateLoan()">Calculate Loan</button>
+
+        <div id="error" class="error"></div>
+
+        <div class="result" id="result" style="display: none;">
+            <p><strong>Monthly EMI:</strong> ₹<span id="emi"></span></p>
+            <p><strong>Total Payment:</strong> ₹<span id="totalPayment"></span></p>
+            <p><strong>Total Interest:</strong> ₹<span id="totalInterest"></span></p>
+        </div>
+
+    </div>
+
+    <script>
+        function calculateLoan() {
+
+            // Get input values
+            const amount = parseFloat(document.getElementById("amount").value);
+            const annualRate = parseFloat(document.getElementById("rate").value);
+            const years = parseFloat(document.getElementById("years").value);
+
+            const error = document.getElementById("error");
+            const result = document.getElementById("result");
+
+            // Clear previous error
+            error.textContent = "";
+
+            // Validate inputs
+            if (!amount || !annualRate || !years ||
+                amount <= 0 || annualRate < 0 || years <= 0) {
+
+                error.textContent = "Please enter valid loan details.";
+                result.style.display = "none";
+                return;
+            }
+
+            // Monthly interest rate
+            const monthlyRate = annualRate / 100 / 12;
+
+            // Total number of monthly payments
+            const numberOfPayments = years * 12;
+
+            let emi;
+
+            // EMI calculation
+            if (monthlyRate === 0) {
+                emi = amount / numberOfPayments;
+            } else {
+                emi = amount *
+                    monthlyRate *
+                    Math.pow(1 + monthlyRate, numberOfPayments) /
+                    (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+            }
+
+            // Total payment
+            const totalPayment = emi * numberOfPayments;
+
+            // Total interest
+            const totalInterest = totalPayment - amount;
+
+            // Display results
+            document.getElementById("emi").textContent =
+                emi.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2
+                });
+
+            document.getElementById("totalPayment").textContent =
+                totalPayment.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2
+                });
+
+            document.getElementById("totalInterest").textContent =
+                totalInterest.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2
+                });
+
+            result.style.display = "block";
+        }
+    </script>
 
 </body>
 </html>
+```
