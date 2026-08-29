@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Are You Short?</title>
 
 <style>
@@ -13,73 +14,92 @@
 
     body {
         margin: 0;
+        width: 100vw;
         height: 100vh;
+        overflow: hidden;
+        background: white;
+        font-family: Arial, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-        font-family: Arial, sans-serif;
-        overflow: hidden;
     }
 
     .box {
-        background: white;
-        width: min(90%, 500px);
-        padding: 40px 25px;
-        border-radius: 25px;
         text-align: center;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        background: white;
+        padding: 40px;
+        border-radius: 25px;
     }
 
     h1 {
-        font-size: 32px;
-        color: #333;
-        margin-bottom: 15px;
+        font-size: 38px;
+        color: #222;
+        margin-bottom: 20px;
     }
 
     p {
-        font-size: 20px;
-        color: #666;
-        margin-bottom: 30px;
+        font-size: 22px;
+        color: #444;
+        margin-bottom: 35px;
     }
 
     .buttons {
         display: flex;
         justify-content: center;
-        gap: 20px;
+        gap: 25px;
     }
 
     button {
         border: none;
-        padding: 14px 30px;
-        font-size: 18px;
+        padding: 15px 35px;
+        font-size: 20px;
         font-weight: bold;
         border-radius: 12px;
         cursor: pointer;
-        transition: 0.2s;
     }
 
     #yes {
-        background: #35c759;
+        background: #22c55e;
         color: white;
+    }
+
+    #no {
+        background: #ef4444;
+        color: white;
+        position: relative;
     }
 
     #yes:hover {
         transform: scale(1.08);
     }
 
-    #no {
-        background: #ff3b30;
-        color: white;
-        position: relative;
-    }
-
     #message {
         display: none;
-        margin-top: 25px;
-        font-size: 25px;
+        font-size: 30px;
         font-weight: bold;
-        color: #ff4081;
+        color: #ff1493;
+        margin-top: 25px;
+    }
+
+    /* Emoji animation */
+    .emoji {
+        position: fixed;
+        bottom: -80px;
+        pointer-events: none;
+        z-index: 100;
+        animation: flyUp linear forwards;
+    }
+
+    @keyframes flyUp {
+        0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(-120vh) rotate(360deg);
+            opacity: 0;
+        }
     }
 </style>
 </head>
@@ -87,9 +107,12 @@
 <body>
 
 <div class="box">
+
     <h1>😏 Are You SHORT?</h1>
 
-    <p>If you are not SHORT, then you can click NO 👀</p>
+    <p>
+        If you are not SHORT, then you can click NO 👀
+    </p>
 
     <div class="buttons">
         <button id="yes">YES 😭</button>
@@ -97,10 +120,9 @@
     </div>
 
     <div id="message">
-        😂 You clicked YES!
-        <br><br>
-        I KNEW IT! 🤣
+        😂🤣 I KNEW IT! 🤣😂
     </div>
+
 </div>
 
 <script>
@@ -109,7 +131,10 @@ const noButton = document.getElementById("no");
 const yesButton = document.getElementById("yes");
 const message = document.getElementById("message");
 
-/* Make NO run away */
+/* =========================
+   NO BUTTON RUNS AWAY
+========================= */
+
 function moveNoButton() {
 
     const buttonWidth = noButton.offsetWidth;
@@ -118,35 +143,75 @@ function moveNoButton() {
     const maxX = window.innerWidth - buttonWidth - 20;
     const maxY = window.innerHeight - buttonHeight - 20;
 
-    const randomX = Math.max(10, Math.random() * maxX);
-    const randomY = Math.max(10, Math.random() * maxY);
+    const randomX = Math.random() * maxX;
+    const randomY = Math.random() * maxY;
 
     noButton.style.position = "fixed";
     noButton.style.left = randomX + "px";
     noButton.style.top = randomY + "px";
 }
 
-/* Desktop */
+/* Computer */
 noButton.addEventListener("mouseenter", moveNoButton);
 
-/* Mobile */
-noButton.addEventListener("touchstart", function(e) {
-    e.preventDefault();
+/* Phone */
+noButton.addEventListener("touchstart", function(event) {
+    event.preventDefault();
     moveNoButton();
 });
 
-/* If they somehow manage to click NO */
+/* If somehow clicked */
 noButton.addEventListener("click", function() {
     moveNoButton();
 });
 
-/* YES button */
+
+/* =========================
+   YES BUTTON
+========================= */
+
 yesButton.addEventListener("click", function() {
 
     message.style.display = "block";
 
     yesButton.style.display = "none";
     noButton.style.display = "none";
+
+    /* Create 100 emojis */
+    for (let i = 0; i < 100; i++) {
+
+        const emoji = document.createElement("div");
+
+        /* Randomly choose 🤣 or 😂 */
+        emoji.textContent =
+            Math.random() < 0.5 ? "🤣" : "😂";
+
+        emoji.className = "emoji";
+
+        /* Random horizontal position */
+        emoji.style.left =
+            Math.random() * 100 + "vw";
+
+        /* Random size */
+        emoji.style.fontSize =
+            (20 + Math.random() * 35) + "px";
+
+        /* Random speed */
+        emoji.style.animationDuration =
+            (3 + Math.random() * 5) + "s";
+
+        /* Random starting delay */
+        emoji.style.animationDelay =
+            Math.random() * 2 + "s";
+
+        document.body.appendChild(emoji);
+
+        /* Remove after animation */
+        setTimeout(function() {
+            emoji.remove();
+        }, 8000);
+    }
+
 });
 
 </script>
