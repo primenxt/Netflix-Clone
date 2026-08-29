@@ -1,1024 +1,1285 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Endless Runner</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Mountain Rush - Hill Climb Game</title>
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#111;color:#fff}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+button{font-family:inherit;cursor:pointer}
+#menu,#garage,#gameover,#pause{
+position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+background:linear-gradient(135deg,#08111fdd,#132c46ee);z-index:20
 }
-
-body {
-    background: #080b14;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
+.panel{
+width:min(94%,900px);max-height:92vh;overflow:auto;background:#101923;
+border:1px solid #33495c;border-radius:24px;padding:28px;
+box-shadow:0 25px 80px #000b;text-align:center
 }
-
-#game {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: linear-gradient(#5ec8ff, #dff7ff);
+h1{font-size:clamp(38px,7vw,76px);color:#ffd43b;text-shadow:0 4px 0 #8d5b00;margin-bottom:8px}
+h2{font-size:32px;margin-bottom:18px}
+.subtitle{color:#b8c7d4;margin-bottom:24px}
+.btn{
+border:0;border-radius:14px;padding:14px 24px;background:#ffd43b;color:#151515;
+font-size:18px;font-weight:800;margin:6px;box-shadow:0 5px 0 #a87900
 }
+.btn:active{transform:translateY(4px);box-shadow:none}
+.secondary{background:#38bdf8;box-shadow:0 5px 0 #087aa9}
+.danger{background:#ef4444;color:white;box-shadow:0 5px 0 #991b1b}
+.hidden{display:none!important}
 
-/* SKY */
-
-.sun {
-    position: absolute;
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    background: #fff27a;
-    top: 70px;
-    right: 10%;
-    box-shadow: 0 0 50px #fff27a;
+#hud{
+position:fixed;left:0;right:0;top:0;padding:12px;z-index:10;
+display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none
 }
-
-.cloud {
-    position: absolute;
-    width: 130px;
-    height: 45px;
-    background: white;
-    border-radius: 50px;
-    opacity: .8;
+.hudBox{
+background:#07111ccc;border:1px solid #ffffff22;border-radius:13px;
+padding:8px 13px;backdrop-filter:blur(5px);font-weight:bold
 }
+.hudRow{display:flex;gap:8px;flex-wrap:wrap}
+.bar{width:145px;height:12px;background:#17212a;border-radius:10px;overflow:hidden;margin-top:5px}
+.fill{height:100%;width:100%;border-radius:10px}
+.fuel{background:#34d399}.health{background:#ef4444}
+#pauseBtn{pointer-events:auto;border:0;border-radius:12px;padding:11px 14px;background:#07111ccc;color:#fff;font-size:18px}
 
-.cloud::before,
-.cloud::after {
-    content: "";
-    position: absolute;
-    background: white;
-    border-radius: 50%;
+.carGrid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:18px 0
 }
-
-.cloud::before {
-    width: 60px;
-    height: 60px;
-    left: 20px;
-    bottom: 10px;
+.carCard{
+background:#182531;border:2px solid #2d4050;border-radius:16px;padding:15px;
+transition:.2s
 }
+.carCard.selected{border-color:#ffd43b;transform:translateY(-3px)}
+.carIcon{font-size:55px;margin:8px}
+.carName{font-size:19px;font-weight:bold}
+.stat{text-align:left;font-size:12px;color:#aebdca;margin-top:7px}
+.statLine{height:6px;background:#293a48;border-radius:5px;margin-top:3px}
+.statFill{height:100%;background:#ffd43b;border-radius:5px}
+.price{color:#ffd43b;margin:8px}
+.upgrades{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px}
+.upgrade{background:#182531;border-radius:14px;padding:15px}
+.level{color:#ffd43b;margin:6px}
+.small{font-size:12px;color:#9fb0bf}
 
-.cloud::after {
-    width: 70px;
-    height: 70px;
-    right: 15px;
-    bottom: 5px;
+#mobile{
+position:fixed;left:0;right:0;bottom:15px;z-index:12;
+display:flex;justify-content:space-between;padding:0 18px;pointer-events:none
 }
-
-.cloud1 {
-    top: 100px;
-    left: 10%;
+.controls{display:flex;gap:12px}
+.control{
+width:75px;height:65px;border-radius:20px;border:1px solid #ffffff33;
+background:#08111dcc;color:#fff;font-size:28px;pointer-events:auto;
+touch-action:none
 }
+.control:active{background:#ffd43b;color:#111}
 
-.cloud2 {
-    top: 190px;
-    left: 55%;
-    transform: scale(.7);
-}
+.result{font-size:20px;line-height:1.8;margin:15px}
+.coinBig{color:#ffd43b;font-weight:bold}
 
-/* MOUNTAINS */
-
-.mountains {
-    position: absolute;
-    bottom: 190px;
-    width: 100%;
-    height: 220px;
-    background:
-        linear-gradient(135deg, transparent 50%, #496b83 50%) 0 100% / 240px 220px repeat-x;
-    opacity: .8;
-}
-
-/* GROUND */
-
-.ground {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 190px;
-    background: #4b9b43;
-    border-top: 10px solid #306c2c;
-}
-
-.road {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 125px;
-    background: #444;
-    border-top: 8px solid #555;
-}
-
-.road-line {
-    position: absolute;
-    bottom: 55px;
-    width: 100%;
-    height: 8px;
-    background: repeating-linear-gradient(
-        to right,
-        white 0px,
-        white 70px,
-        transparent 70px,
-        transparent 130px
-    );
-}
-
-/* PLAYER */
-
-#player {
-    position: absolute;
-    width: 55px;
-    height: 70px;
-    left: 120px;
-    bottom: 125px;
-    z-index: 10;
-}
-
-.head {
-    position: absolute;
-    width: 35px;
-    height: 35px;
-    background: #ffd0a6;
-    border-radius: 50%;
-    left: 10px;
-    top: 0;
-}
-
-.body {
-    position: absolute;
-    width: 40px;
-    height: 38px;
-    background: #2563eb;
-    border-radius: 12px 12px 5px 5px;
-    left: 7px;
-    top: 30px;
-}
-
-.eye {
-    position: absolute;
-    width: 5px;
-    height: 5px;
-    background: black;
-    border-radius: 50%;
-    top: 14px;
-    left: 22px;
-}
-
-.leg {
-    position: absolute;
-    width: 10px;
-    height: 20px;
-    background: #172554;
-    bottom: -10px;
-}
-
-.leg1 {
-    left: 12px;
-}
-
-.leg2 {
-    right: 12px;
-}
-
-/* OBSTACLE */
-
-.obstacle {
-    position: absolute;
-    bottom: 125px;
-    width: 35px;
-    height: 55px;
-    background: #7c2d12;
-    border-radius: 8px 8px 3px 3px;
-    z-index: 5;
-}
-
-.obstacle::before {
-    content: "";
-    position: absolute;
-    width: 50px;
-    height: 12px;
-    background: #9a3412;
-    left: -7px;
-    top: 15px;
-    border-radius: 10px;
-}
-
-/* COIN */
-
-.coin {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #ffd700;
-    border: 4px solid #f59e0b;
-    bottom: 230px;
-    z-index: 6;
-    box-shadow: 0 0 15px #ffd700;
-}
-
-.coin::after {
-    content: "$";
-    position: absolute;
-    color: #92400e;
-    font-weight: bold;
-    font-size: 15px;
-    left: 6px;
-    top: 2px;
-}
-
-/* UI */
-
-#ui {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    z-index: 100;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.score-box {
-    background: rgba(0,0,0,.45);
-    color: white;
-    padding: 12px 18px;
-    border-radius: 12px;
-    backdrop-filter: blur(5px);
-}
-
-.score-box div {
-    margin: 4px 0;
-}
-
-#pause {
-    border: none;
-    background: rgba(0,0,0,.5);
-    color: white;
-    padding: 12px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 18px;
-}
-
-/* GAME OVER */
-
-#gameOver {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,.72);
-    z-index: 200;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
-}
-
-.panel {
-    width: min(90%, 450px);
-    background: #111827;
-    padding: 35px;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px black;
-}
-
-.panel h1 {
-    font-size: 42px;
-    margin-bottom: 15px;
-}
-
-.panel p {
-    margin: 10px;
-    font-size: 20px;
-}
-
-button.main {
-    margin-top: 20px;
-    padding: 14px 30px;
-    border: none;
-    border-radius: 10px;
-    background: #22c55e;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-}
-
-button.main:hover {
-    background: #16a34a;
-}
-
-/* START SCREEN */
-
-#startScreen {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg,#111827,#1e3a8a);
-    z-index: 300;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
-}
-
-.start-panel {
-    padding: 30px;
-}
-
-.start-panel h1 {
-    font-size: clamp(40px, 8vw, 75px);
-    margin-bottom: 10px;
-}
-
-.start-panel p {
-    color: #cbd5e1;
-    margin-bottom: 20px;
-}
-
-/* MOBILE CONTROLS */
-
-#mobileControls {
-    position: absolute;
-    bottom: 25px;
-    left: 0;
-    right: 0;
-    display: none;
-    justify-content: center;
-    z-index: 150;
-}
-
-#jumpButton {
-    width: 100px;
-    height: 60px;
-    border-radius: 30px;
-    border: none;
-    background: rgba(0,0,0,.5);
-    color: white;
-    font-size: 18px;
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 700px) {
-
-    #mobileControls {
-        display: flex;
-    }
-
-    #player {
-        left: 70px;
-    }
-
-    .sun {
-        width: 60px;
-        height: 60px;
-    }
-
-    .mountains {
-        bottom: 190px;
-    }
+@media(max-width:600px){
+.panel{padding:20px;border-radius:18px}
+.upgrades{grid-template-columns:1fr}
+.carGrid{grid-template-columns:repeat(2,1fr)}
+.hudBox{font-size:12px}
+.bar{width:110px}
+.control{width:70px;height:60px}
 }
 </style>
 </head>
-
 <body>
 
-<div id="game">
+<canvas id="game"></canvas>
 
-    <div class="sun"></div>
-
-    <div class="cloud cloud1"></div>
-    <div class="cloud cloud2"></div>
-
-    <div class="mountains"></div>
-
-    <div class="ground"></div>
-
-    <div class="road">
-        <div class="road-line"></div>
+<div id="hud" class="hidden">
+  <div class="hudRow">
+    <div class="hudBox">🪙 <span id="coins">0</span></div>
+    <div class="hudBox">🏔️ <span id="distance">0</span> m</div>
+    <div class="hudBox">🏆 <span id="best">0</span> m</div>
+    <div class="hudBox">
+      ⛽
+      <div class="bar"><div id="fuel" class="fill fuel"></div></div>
     </div>
-
-    <!-- PLAYER -->
-
-    <div id="player">
-
-        <div class="head">
-            <div class="eye"></div>
-        </div>
-
-        <div class="body"></div>
-
-        <div class="leg leg1"></div>
-        <div class="leg leg2"></div>
-
+    <div class="hudBox">
+      ❤️
+      <div class="bar"><div id="health" class="fill health"></div></div>
     </div>
-
-
-    <!-- UI -->
-
-    <div id="ui">
-
-        <div class="score-box">
-
-            <div>
-                🏆 Score:
-                <span id="score">0</span>
-            </div>
-
-            <div>
-                🪙 Coins:
-                <span id="coins">0</span>
-            </div>
-
-            <div>
-                ⭐ Best:
-                <span id="best">0</span>
-            </div>
-
-        </div>
-
-        <button id="pause" onclick="togglePause()">
-            ⏸️
-        </button>
-
-    </div>
-
-
-    <!-- MOBILE -->
-
-    <div id="mobileControls">
-
-        <button id="jumpButton">
-            🦘 JUMP
-        </button>
-
-    </div>
-
-
-    <!-- START -->
-
-    <div id="startScreen">
-
-        <div class="start-panel">
-
-            <h1>🏃 ENDLESS RUNNER</h1>
-
-            <p>
-                Jump over obstacles, collect coins and survive as long as possible!
-            </p>
-
-            <p>
-                🎮 Press SPACE / ↑ to jump
-            </p>
-
-            <button class="main" onclick="startGame()">
-                ▶ START GAME
-            </button>
-
-        </div>
-
-    </div>
-
-
-    <!-- GAME OVER -->
-
-    <div id="gameOver">
-
-        <div class="panel">
-
-            <h1>💥 GAME OVER</h1>
-
-            <p>
-                Score: <strong id="finalScore">0</strong>
-            </p>
-
-            <p>
-                Coins: <strong id="finalCoins">0</strong>
-            </p>
-
-            <p>
-                Best Score: <strong id="finalBest">0</strong>
-            </p>
-
-            <button class="main" onclick="restartGame()">
-                🔄 PLAY AGAIN
-            </button>
-
-        </div>
-
-    </div>
-
+  </div>
+  <button id="pauseBtn">⏸</button>
 </div>
 
+<div id="mobile" class="hidden">
+  <div class="controls">
+    <button class="control" id="brake">◀</button>
+  </div>
+  <div class="controls">
+    <button class="control" id="gas">▶</button>
+  </div>
+</div>
+
+<div id="menu">
+  <div class="panel">
+    <div style="font-size:75px">🚙</div>
+    <h1>MOUNTAIN RUSH</h1>
+    <p class="subtitle">Extreme endless mountain driving</p>
+    <p style="font-size:18px;margin-bottom:18px">
+      Drive • Jump • Flip • Collect • Upgrade • Survive
+    </p>
+    <button class="btn" id="playBtn">🏁 PLAY</button>
+    <button class="btn secondary" id="garageBtn">🔧 GARAGE</button>
+    <p class="small" style="margin-top:18px">
+      Keyboard: A/D or ←/→ &nbsp; • &nbsp; Space = brake &nbsp; • &nbsp; P = pause
+    </p>
+  </div>
+</div>
+
+<div id="garage" class="hidden">
+  <div class="panel">
+    <h2>🔧 GARAGE</h2>
+    <div>💰 Coins: <b id="garageCoins">0</b></div>
+
+    <div class="carGrid" id="carGrid"></div>
+
+    <h2 style="margin-top:22px">UPGRADES</h2>
+    <div class="upgrades">
+      <div class="upgrade">
+        <div style="font-size:30px">⚙️</div>
+        <b>ENGINE</b>
+        <div class="level" id="engineLevel"></div>
+        <button class="btn" id="engineBtn">UPGRADE</button>
+      </div>
+      <div class="upgrade">
+        <div style="font-size:30px">🛞</div>
+        <b>GRIP</b>
+        <div class="level" id="gripLevel"></div>
+        <button class="btn" id="gripBtn">UPGRADE</button>
+      </div>
+      <div class="upgrade">
+        <div style="font-size:30px">⛽</div>
+        <b>FUEL TANK</b>
+        <div class="level" id="fuelLevel"></div>
+        <button class="btn" id="fuelBtn">UPGRADE</button>
+      </div>
+    </div>
+
+    <button class="btn secondary" id="garageBack">BACK</button>
+  </div>
+</div>
+
+<div id="gameover" class="hidden">
+  <div class="panel">
+    <div style="font-size:65px">💥</div>
+    <h2>CRASHED!</h2>
+    <div class="result">
+      Distance: <b id="finalDistance">0</b> m<br>
+      Coins collected: <span class="coinBig">🪙 <b id="finalCoins">0</b></span><br>
+      Best distance: <b id="finalBest">0</b> m
+    </div>
+    <button class="btn" id="againBtn">🔄 PLAY AGAIN</button>
+    <button class="btn secondary" id="gameGarage">🔧 GARAGE</button>
+    <button class="btn danger" id="homeBtn">🏠 HOME</button>
+  </div>
+</div>
+
+<div id="pause" class="hidden">
+  <div class="panel">
+    <div style="font-size:65px">⏸️</div>
+    <h2>PAUSED</h2>
+    <button class="btn" id="resumeBtn">▶ RESUME</button>
+    <button class="btn danger" id="quitBtn">🏠 QUIT</button>
+  </div>
+</div>
 
 <script>
+"use strict";
 
-/* =========================
-   GAME VARIABLES
-========================= */
+/* =========================================================
+   CANVAS
+========================================================= */
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-const player = document.getElementById("player");
-const game = document.getElementById("game");
+let W=innerWidth,H=innerHeight,DPR=1;
 
-let isPlaying = false;
-let isPaused = false;
-let isJumping = false;
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=innerWidth; H=innerHeight;
+  canvas.width=W*DPR;
+  canvas.height=H*DPR;
+  canvas.style.width=W+"px";
+  canvas.style.height=H+"px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener("resize",resize);
+resize();
 
-let playerBottom = 125;
-let velocityY = 0;
+/* =========================================================
+   STORAGE
+========================================================= */
+let save={
+  coins:Number(localStorage.getItem("mr_coins")||0),
+  best:Number(localStorage.getItem("mr_best")||0),
+  car:Number(localStorage.getItem("mr_car")||0),
+  engine:Number(localStorage.getItem("mr_engine")||0),
+  grip:Number(localStorage.getItem("mr_grip")||0),
+  fuel:Number(localStorage.getItem("mr_fuel")||0)
+};
 
-let gravity = 1.2;
-
-let score = 0;
-let coins = 0;
-
-let speed = 6;
-
-let obstacleTimer = 0;
-let coinTimer = 0;
-
-let lastTime = 0;
-
-let bestScore =
-    Number(localStorage.getItem("endlessBest")) || 0;
-
-document.getElementById("best").textContent = bestScore;
-
-
-/* =========================
-   SOUND SYSTEM
-========================= */
-
-let audioContext;
-
-function sound(type) {
-
-    try {
-
-        if (!audioContext) {
-            audioContext =
-                new (window.AudioContext ||
-                window.webkitAudioContext)();
-        }
-
-        const oscillator =
-            audioContext.createOscillator();
-
-        const gain =
-            audioContext.createGain();
-
-        oscillator.connect(gain);
-        gain.connect(audioContext.destination);
-
-        if (type === "jump") {
-
-            oscillator.frequency.value = 500;
-            gain.gain.value = 0.08;
-
-        } else if (type === "coin") {
-
-            oscillator.frequency.value = 900;
-            gain.gain.value = 0.1;
-
-        } else if (type === "gameover") {
-
-            oscillator.frequency.value = 150;
-            gain.gain.value = 0.12;
-
-        }
-
-        oscillator.start();
-
-        oscillator.stop(
-            audioContext.currentTime + .12
-        );
-
-    } catch(e) {}
-
+function saveData(){
+  localStorage.setItem("mr_coins",save.coins);
+  localStorage.setItem("mr_best",save.best);
+  localStorage.setItem("mr_car",save.car);
+  localStorage.setItem("mr_engine",save.engine);
+  localStorage.setItem("mr_grip",save.grip);
+  localStorage.setItem("mr_fuel",save.fuel);
 }
 
+/* =========================================================
+   CARS
+========================================================= */
+const cars=[
+ {name:"RANGER",icon:"🚙",price:0,power:1,grip:1,fuel:1,color:"#ef4444"},
+ {name:"SPORT",icon:"🏎️",price:500,power:1.35,grip:.9,fuel:.85,color:"#38bdf8"},
+ {name:"MONSTER",icon:"🚚",price:1200,power:1.15,grip:1.5,fuel:1.2,color:"#a78bfa"},
+ {name:"ROCKET",icon:"🚗",price:2500,power:1.8,grip:1.05,fuel:.8,color:"#f97316"},
+ {name:"TANKER",icon:"🚛",price:4500,power:1.3,grip:1.8,fuel:1.5,color:"#22c55e"}
+];
 
-/* =========================
-   START GAME
-========================= */
+let unlocked=[true,false,false,false,false];
+let unlockedStorage=JSON.parse(localStorage.getItem("mr_unlocked")||"null");
+if(unlockedStorage)unlocked=unlockedStorage;
 
-function startGame() {
-
-    document.getElementById("startScreen")
-        .style.display = "none";
-
-    isPlaying = true;
-    isPaused = false;
-
-    score = 0;
-    coins = 0;
-    speed = 6;
-
-    obstacleTimer = 0;
-    coinTimer = 0;
-
-    document.getElementById("score").textContent = 0;
-    document.getElementById("coins").textContent = 0;
-
-    document.querySelectorAll(".obstacle")
-        .forEach(o => o.remove());
-
-    document.querySelectorAll(".coin")
-        .forEach(c => c.remove());
-
-    requestAnimationFrame(gameLoop);
+function persistUnlocks(){
+  localStorage.setItem("mr_unlocked",JSON.stringify(unlocked));
 }
 
+/* =========================================================
+   GARAGE
+========================================================= */
+const carGrid=document.getElementById("carGrid");
 
-/* =========================
-   JUMP
-========================= */
+function renderGarage(){
+  document.getElementById("garageCoins").textContent=save.coins;
+  carGrid.innerHTML="";
 
-function jump() {
+  cars.forEach((car,i)=>{
+    const d=document.createElement("div");
+    d.className="carCard"+(save.car===i?" selected":"");
 
-    if (!isPlaying || isPaused)
-        return;
+    const locked=!unlocked[i];
 
-    if (!isJumping) {
+    d.innerHTML=`
+      <div class="carIcon">${locked?"🔒":car.icon}</div>
+      <div class="carName">${car.name}</div>
+      ${
+        locked
+        ? `<div class="price">🪙 ${car.price}</div>
+           <button class="btn" onclick="buyCar(${i})">BUY</button>`
+        : `<div class="small">POWER</div>
+           <div class="statLine"><div class="statFill" style="width:${Math.min(car.power/2*100,100)}%"></div></div>
+           <div class="small">GRIP</div>
+           <div class="statLine"><div class="statFill" style="width:${Math.min(car.grip/1.8*100,100)}%"></div></div>
+           <button class="btn" onclick="selectCar(${i})">
+             ${save.car===i?"SELECTED":"SELECT"}
+           </button>`
+      }
+    `;
+    carGrid.appendChild(d);
+  });
 
-        isJumping = true;
+  document.getElementById("engineLevel").textContent="Level "+save.engine+"/8";
+  document.getElementById("gripLevel").textContent="Level "+save.grip+"/8";
+  document.getElementById("fuelLevel").textContent="Level "+save.fuel+"/8";
+}
 
-        velocityY = 19;
+function buyCar(i){
+  if(save.coins>=cars[i].price){
+    save.coins-=cars[i].price;
+    unlocked[i]=true;
+    persistUnlocks();
+    saveData();
+    renderGarage();
+    beep(700,.08);
+  }
+}
 
-        sound("jump");
+function selectCar(i){
+  if(unlocked[i]){
+    save.car=i;
+    saveData();
+    renderGarage();
+  }
+}
 
+function upgrade(type){
+  if(save[type]>=8)return;
+  const price=100*(save[type]+1)*(save[type]+1);
+  if(save.coins>=price){
+    save.coins-=price;
+    save[type]++;
+    saveData();
+    renderGarage();
+    beep(900,.08);
+  }
+}
+
+document.getElementById("engineBtn").onclick=()=>upgrade("engine");
+document.getElementById("gripBtn").onclick=()=>upgrade("grip");
+document.getElementById("fuelBtn").onclick=()=>upgrade("fuel");
+
+/* =========================================================
+   AUDIO
+========================================================= */
+let audio=null;
+
+function beep(freq=500,duration=.06){
+  try{
+    audio=audio||new (AudioContext||webkitAudioContext)();
+    const o=audio.createOscillator();
+    const g=audio.createGain();
+    o.frequency.value=freq;
+    o.connect(g);g.connect(audio.destination);
+    g.gain.value=.035;
+    o.start();
+    o.stop(audio.currentTime+duration);
+  }catch(e){}
+}
+
+/* =========================================================
+   TERRAIN
+========================================================= */
+let terrain=[];
+let terrainStep=42;
+let terrainStart=-1000;
+
+function generateTerrain(){
+  terrain=[];
+  let y=H*.68;
+
+  for(let x=terrainStart;x<W+5000;x+=terrainStep){
+    const wave=
+      Math.sin(x*.006)*65+
+      Math.sin(x*.013+1.5)*30+
+      Math.sin(x*.027)*15;
+
+    const rough=
+      Math.sin(x*.08)*7+
+      Math.sin(x*.16)*3;
+
+    y=H*.65+wave+rough;
+    y=Math.max(H*.35,Math.min(H*.82,y));
+    terrain.push({x,y});
+  }
+}
+
+generateTerrain();
+
+function terrainY(x){
+  const index=(x-terrainStart)/terrainStep;
+  const i=Math.floor(index);
+  const f=index-i;
+
+  if(i<0)return H*.65;
+  if(i>=terrain.length-1){
+    extendTerrain();
+  }
+
+  const a=terrain[i]||terrain[terrain.length-2];
+  const b=terrain[i+1]||terrain[terrain.length-1];
+
+  return a.y+(b.y-a.y)*f;
+}
+
+function extendTerrain(){
+  let last=terrain[terrain.length-1];
+  for(let i=0;i<100;i++){
+    const x=last.x+terrainStep;
+    const y=H*.65+
+      Math.sin(x*.006)*65+
+      Math.sin(x*.013+1.5)*30+
+      Math.sin(x*.027)*15+
+      Math.sin(x*.08)*7;
+    terrain.push({x,y});
+    last=terrain[terrain.length-1];
+  }
+}
+
+/* =========================================================
+   OBJECTS
+========================================================= */
+let objects=[];
+let spawnX=500;
+
+function spawnObjects(){
+  while(spawnX<car.x+W*2.5){
+    const y=terrainY(spawnX);
+
+    const r=Math.random();
+
+    if(r<.42){
+      objects.push({
+        type:"coin",
+        x:spawnX,
+        y:y-70-Math.random()*70,
+        r:12,
+        taken:false
+      });
+    }else if(r<.56){
+      objects.push({
+        type:"fuel",
+        x:spawnX,
+        y:y-60,
+        taken:false
+      });
+    }else if(r<.67){
+      objects.push({
+        type:"rock",
+        x:spawnX,
+        y:y-25,
+        w:30+Math.random()*20,
+        h:25+Math.random()*15
+      });
     }
 
+    spawnX+=100+Math.random()*230;
+  }
 }
 
+/* =========================================================
+   CAR PHYSICS
+========================================================= */
+let car={
+ x:150,y:0,vx:0,vy:0,
+ angle:0,angular:0,
+ wheelBase:62,
+ radius:14,
+ fuel:100,
+ health:100,
+ distance:0,
+ flips:0,
+ airborne:false
+};
 
-document.addEventListener("keydown", function(e) {
+let gameRunning=false;
+let paused=false;
+let cameraX=0;
+let cameraY=0;
+let scoreCoins=0;
+let startX=150;
+let lastTime=0;
+let particles=[];
 
-    if (
-        e.code === "Space" ||
-        e.code === "ArrowUp"
-    ) {
+/* =========================================================
+   INPUT
+========================================================= */
+let keys={gas:false,brake:false};
 
-        e.preventDefault();
+addEventListener("keydown",e=>{
+  if(e.code==="ArrowRight"||e.code==="KeyD")keys.gas=true;
+  if(e.code==="ArrowLeft"||e.code==="KeyA"||e.code==="Space")keys.brake=true;
 
-        jump();
-
-    }
-
+  if(e.code==="KeyP"||e.code==="Escape"){
+    if(gameRunning)togglePause();
+  }
 });
 
+addEventListener("keyup",e=>{
+  if(e.code==="ArrowRight"||e.code==="KeyD")keys.gas=false;
+  if(e.code==="ArrowLeft"||e.code==="KeyA"||e.code==="Space")keys.brake=false;
+});
 
-document.getElementById("jumpButton")
-    .addEventListener("touchstart", function(e) {
+function touchButton(id,key){
+  const el=document.getElementById(id);
 
-        e.preventDefault();
-
-        jump();
-
+  ["touchstart","mousedown"].forEach(ev=>{
+    el.addEventListener(ev,e=>{
+      e.preventDefault();
+      keys[key]=true;
     });
-
-
-/* =========================
-   CREATE OBSTACLE
-========================= */
-
-function createObstacle() {
-
-    const obstacle =
-        document.createElement("div");
-
-    obstacle.className = "obstacle";
-
-    obstacle.style.right = "-50px";
-
-    game.appendChild(obstacle);
-
-}
-
-
-/* =========================
-   CREATE COIN
-========================= */
-
-function createCoin() {
-
-    const coin =
-        document.createElement("div");
-
-    coin.className = "coin";
-
-    coin.style.right = "-50px";
-
-    const height =
-        180 + Math.random() * 100;
-
-    coin.style.bottom = height + "px";
-
-    game.appendChild(coin);
-
-}
-
-
-/* =========================
-   COLLISION
-========================= */
-
-function collision(a, b) {
-
-    const A = a.getBoundingClientRect();
-    const B = b.getBoundingClientRect();
-
-    return !(
-        A.right < B.left ||
-        A.left > B.right ||
-        A.bottom < B.top ||
-        A.top > B.bottom
-    );
-
-}
-
-
-/* =========================
-   GAME LOOP
-========================= */
-
-function gameLoop(timestamp) {
-
-    if (!isPlaying)
-        return;
-
-    if (isPaused) {
-
-        requestAnimationFrame(gameLoop);
-
-        return;
-
-    }
-
-
-    if (!lastTime)
-        lastTime = timestamp;
-
-    const delta =
-        Math.min((timestamp - lastTime) / 16.67, 2);
-
-    lastTime = timestamp;
-
-
-    /* PLAYER PHYSICS */
-
-    if (isJumping) {
-
-        playerBottom +=
-            velocityY * delta;
-
-        velocityY -=
-            gravity * delta;
-
-
-        if (playerBottom <= 125) {
-
-            playerBottom = 125;
-
-            velocityY = 0;
-
-            isJumping = false;
-
-        }
-
-        player.style.bottom =
-            playerBottom + "px";
-
-    }
-
-
-    /* OBSTACLES */
-
-    obstacleTimer += delta;
-
-    if (obstacleTimer > 85) {
-
-        createObstacle();
-
-        obstacleTimer = 0;
-
-    }
-
-
-    const obstacles =
-        document.querySelectorAll(".obstacle");
-
-
-    obstacles.forEach(obstacle => {
-
-        let right =
-            parseFloat(
-                obstacle.style.right
-            ) || -50;
-
-        right += speed * delta;
-
-        obstacle.style.right =
-            right + "px";
-
-
-        if (collision(player, obstacle)) {
-
-            endGame();
-
-        }
-
-
-        if (right > window.innerWidth + 100) {
-
-            obstacle.remove();
-
-        }
-
+  });
+
+  ["touchend","touchcancel","mouseup","mouseleave"].forEach(ev=>{
+    el.addEventListener(ev,e=>{
+      e.preventDefault();
+      keys[key]=false;
     });
+  });
+}
 
+touchButton("gas","gas");
+touchButton("brake","brake");
 
-    /* COINS */
+/* =========================================================
+   RESET
+========================================================= */
+function resetGame(){
+  car.x=150;
+  car.y=terrainY(car.x)-70;
+  car.vx=0;
+  car.vy=0;
+  car.angle=0;
+  car.angular=0;
+  car.fuel=100;
+  car.health=100;
+  car.distance=0;
+  car.flips=0;
 
-    coinTimer += delta;
+  objects=[];
+  spawnX=500;
+  scoreCoins=0;
+  particles=[];
+  cameraX=0;
+  cameraY=0;
+  paused=false;
+  lastTime=0;
 
-    if (coinTimer > 120) {
+  spawnObjects();
+}
 
-        createCoin();
+function startGame(){
+  resetGame();
+  gameRunning=true;
+  paused=false;
 
-        coinTimer = 0;
+  hide("menu");
+  hide("garage");
+  hide("gameover");
+  hide("pause");
+
+  show("hud");
+  show("mobile");
+
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   PHYSICS
+========================================================= */
+function update(dt){
+
+  const selected=cars[save.car];
+
+  const enginePower=
+    0.20*
+    selected.power*
+    (1+save.engine*.07);
+
+  const grip=
+    selected.grip+
+    save.grip*.08;
+
+  const maxFuel=
+    100+save.fuel*8;
+
+  if(keys.gas && car.fuel>0){
+    car.vx+=enginePower*dt*60;
+    car.fuel-=0.045*dt*60/60;
+    emitParticle(car.x-35,car.y+35,2);
+  }
+
+  if(keys.brake){
+    car.vx-=0.16*dt*60;
+    car.angular-=.002*dt*60;
+  }
+
+  car.vx*=Math.pow(.994,dt*60);
+
+  const maxSpeed=13+save.engine*.8;
+  car.vx=Math.max(-4,Math.min(maxSpeed,car.vx));
+
+  car.vy+=.48*dt*60;
+
+  car.x+=car.vx*dt*60;
+  car.y+=car.vy*dt*60;
+
+  /* Terrain contact */
+
+  const ground=terrainY(car.x)-48;
+
+  if(car.y>ground){
+
+    car.y=ground;
+
+    if(car.vy>5){
+      damage(Math.min(18,car.vy*1.2));
+      burst(car.x,terrainY(car.x),8);
+    }
+
+    car.vy=0;
+    car.airborne=false;
+
+    const slope1=terrainY(car.x-10);
+    const slope2=terrainY(car.x+10);
+    const slope=Math.atan2(slope2-slope1,20);
+
+    const targetAngle=slope;
+
+    let diff=targetAngle-car.angle;
+
+    while(diff>Math.PI)diff-=Math.PI*2;
+    while(diff<-Math.PI)diff+=Math.PI*2;
+
+    car.angular+=diff*.09*grip*dt*60;
+    car.angular*=.92;
+    car.angle+=car.angular*dt*60;
+
+  }else{
+    car.airborne=true;
+
+    if(keys.gas)car.angular-=.006*dt*60;
+    if(keys.brake)car.angular+=.006*dt*60;
+
+    car.angular*=.995;
+    car.angle+=car.angular*dt*60;
+  }
+
+  /* Flip counting */
+
+  const rotations=Math.abs(car.angle)/(Math.PI*2);
+
+  car.flips=Math.floor(rotations);
+
+  /* Crash if upside down after landing */
+
+  if(!car.airborne &&
+     Math.cos(car.angle)<-.72 &&
+     Math.abs(car.vx)>2.5){
+
+    damage(.5*dt*60);
+
+    if(car.health<=0)endGame();
+  }
+
+  /* Bounds */
+
+  if(car.y>H+300){
+    endGame();
+  }
+
+  /* Distance */
+
+  car.distance=Math.max(
+    car.distance,
+    (car.x-startX)/10
+  );
+
+  /* Fuel slowly drains */
+
+  if(car.vx>1)
+    car.fuel-=.0025*dt*60;
+
+  if(car.fuel<=0){
+    car.fuel=0;
+    car.vx*=.985;
+
+    if(Math.abs(car.vx)<.15)
+      endGame();
+  }
+
+  /* Collect objects */
+
+  for(const o of objects){
+
+    if(o.taken)continue;
+
+    const dx=o.x-car.x;
+    const dy=o.y-car.y;
+
+    if(Math.hypot(dx,dy)<55){
+
+      o.taken=true;
+
+      if(o.type==="coin"){
+        scoreCoins++;
+        save.coins++;
+        saveData();
+        beep(850,.07);
+        burst(o.x,o.y,10);
+      }
+
+      if(o.type==="fuel"){
+        car.fuel=Math.min(maxFuel,car.fuel+35);
+        beep(450,.1);
+        burst(o.x,o.y,12);
+      }
+
+      if(o.type==="rock"){
+        damage(25);
+        car.vx*=.65;
+        car.vy=-3;
+        beep(120,.15);
+        burst(o.x,o.y,15);
+      }
+    }
+  }
+
+  objects=objects.filter(o=>o.x>car.x-700);
+
+  spawnObjects();
+
+  /* Camera */
+
+  cameraX+=(car.x-W*.28-cameraX)*.08;
+  cameraY+=(car.y-H*.52-cameraY)*.05;
+
+  /* Particles */
+
+  updateParticles(dt);
+
+  /* HUD */
+
+  document.getElementById("coins").textContent=scoreCoins;
+  document.getElementById("distance").textContent=Math.floor(car.distance);
+  document.getElementById("best").textContent=save.best;
+
+  const maxFuelDisplay=100+save.fuel*8;
+  document.getElementById("fuel").style.width=
+    Math.max(0,car.fuel/maxFuelDisplay*100)+"%";
+
+  document.getElementById("health").style.width=
+    Math.max(0,car.health)+"%";
+}
+
+function damage(amount){
+  car.health-=amount;
+  if(car.health<=0)endGame();
+}
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+function emitParticle(x,y,n=1){
+  for(let i=0;i<n;i++){
+    particles.push({
+      x,y,
+      vx:-Math.random()*2,
+      vy:-Math.random()*1.5,
+      life:.5+Math.random()*.4,
+      size:2+Math.random()*3
+    });
+  }
+}
+
+function burst(x,y,n){
+  for(let i=0;i<n;i++){
+    particles.push({
+      x,y,
+      vx:(Math.random()-.5)*7,
+      vy:(Math.random()-.7)*7,
+      life:.5+Math.random()*.6,
+      size:2+Math.random()*5
+    });
+  }
+}
+
+function updateParticles(dt){
+  for(const p of particles){
+    p.x+=p.vx*dt*60;
+    p.y+=p.vy*dt*60;
+    p.vy+=.15*dt*60;
+    p.life-=dt;
+  }
+  particles=particles.filter(p=>p.life>0);
+}
+
+/* =========================================================
+   DRAW
+========================================================= */
+function draw(){
+
+  ctx.clearRect(0,0,W,H);
+
+  drawSky();
+  drawMountainsFar();
+  drawTerrain();
+  drawObjects();
+  drawParticles();
+  drawCar();
+
+}
+
+function drawSky(){
+
+  const gradient=ctx.createLinearGradient(0,0,0,H);
+  gradient.addColorStop(0,"#49bff5");
+  gradient.addColorStop(.55,"#bcecff");
+  gradient.addColorStop(1,"#e8f7ff");
+
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,W,H);
+
+  /* Sun */
+
+  ctx.fillStyle="#ffe66d";
+  ctx.beginPath();
+  ctx.arc(W*.78,100,55,0,Math.PI*2);
+  ctx.fill();
+
+  /* Clouds */
+
+  for(let i=0;i<7;i++){
+    const x=((i*360-cameraX*.12)% (W+400))-150;
+    const y=80+(i%3)*65;
+
+    ctx.fillStyle="#ffffffaa";
+
+    ctx.beginPath();
+    ctx.arc(x,y,25,0,Math.PI*2);
+    ctx.arc(x+30,y-15,35,0,Math.PI*2);
+    ctx.arc(x+65,y,25,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* Night overlay */
+
+  const cycle=(car.x%6000)/6000;
+  const darkness=Math.max(0,Math.sin(cycle*Math.PI*2)*.35);
+
+  if(darkness>.02){
+    ctx.fillStyle=`rgba(12,20,60,${darkness})`;
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function drawMountainsFar(){
+
+  for(let layer=0;layer<3;layer++){
+
+    ctx.beginPath();
+    ctx.moveTo(0,H);
+
+    const step=180;
+
+    for(let x=-200;x<W+300;x+=step){
+
+      const worldX=x+cameraX*(.15+layer*.08);
+
+      const y=
+        H*.47+
+        Math.sin(worldX*.004+layer)*70+
+        Math.sin(worldX*.009)*35+
+        layer*45;
+
+      ctx.lineTo(x,y);
+    }
+
+    ctx.lineTo(W,H);
+    ctx.closePath();
+
+    ctx.fillStyle=
+      layer===0?"#6e9ab1":
+      layer===1?"#557e94":
+      "#416577";
+
+    ctx.fill();
+  }
+}
+
+function drawTerrain(){
+
+  ctx.save();
+  ctx.translate(-cameraX,-cameraY);
+
+  const left=cameraX-100;
+  const right=cameraX+W+200;
+
+  ctx.beginPath();
+  ctx.moveTo(left,H+500);
+
+  let first=true;
+
+  for(let x=left;x<=right;x+=12){
+
+    const y=terrainY(x);
+
+    if(first){
+      ctx.lineTo(x,y);
+      first=false;
+    }else{
+      ctx.lineTo(x,y);
+    }
+  }
+
+  ctx.lineTo(right,H+500);
+  ctx.closePath();
+
+  const groundGrad=ctx.createLinearGradient(0,0,0,H);
+  groundGrad.addColorStop(0,"#75c84a");
+  groundGrad.addColorStop(.2,"#4c9c38");
+  groundGrad.addColorStop(1,"#245326");
+
+  ctx.fillStyle=groundGrad;
+  ctx.fill();
+
+  /* Snow/grass line */
+
+  ctx.beginPath();
+
+  for(let x=left;x<=right;x+=10){
+    const y=terrainY(x);
+    ctx.lineTo(x,y);
+  }
+
+  ctx.strokeStyle="#c5e89c";
+  ctx.lineWidth=7;
+  ctx.stroke();
+
+  /* Rocks */
+
+  for(let x=Math.floor(left/100)*100;x<right;x+=100){
+    const y=terrainY(x);
+
+    ctx.fillStyle="#52636d";
+
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x+12,y-12);
+    ctx.lineTo(x+28,y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function drawObjects(){
+
+  ctx.save();
+  ctx.translate(-cameraX,-cameraY);
+
+  for(const o of objects){
+
+    if(o.taken)continue;
+
+    if(o.type==="coin"){
+
+      ctx.save();
+      ctx.translate(o.x,o.y);
+
+      const spin=Math.sin(performance.now()*.006+o.x)*.35;
+
+      ctx.scale(Math.max(.25,Math.abs(Math.cos(spin))),1);
+
+      ctx.fillStyle="#ffd43b";
+      ctx.strokeStyle="#9b6800";
+      ctx.lineWidth=3;
+
+      ctx.beginPath();
+      ctx.arc(0,0,o.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle="#fff3a3";
+      ctx.font="bold 14px Arial";
+      ctx.textAlign="center";
+      ctx.fillText("$",0,5);
+
+      ctx.restore();
+    }
+
+    if(o.type==="fuel"){
+
+      ctx.fillStyle="#ef4444";
+      ctx.fillRect(o.x-13,o.y-20,26,35);
+
+      ctx.fillStyle="#fff";
+      ctx.fillRect(o.x-8,o.y-14,16,5);
+
+      ctx.fillStyle="#222";
+      ctx.font="bold 14px Arial";
+      ctx.textAlign="center";
+      ctx.fillText("F",o.x,o.y+9);
 
     }
 
+    if(o.type==="rock"){
 
-    const coinElements =
-        document.querySelectorAll(".coin");
+      ctx.fillStyle="#555";
+      ctx.beginPath();
+      ctx.roundRect(o.x-o.w/2,o.y-o.h,o.w,o.h,8);
+      ctx.fill();
 
+      ctx.fillStyle="#777";
+      ctx.beginPath();
+      ctx.arc(o.x-5,o.y-o.h+8,5,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
 
-    coinElements.forEach(coin => {
-
-        let right =
-            parseFloat(
-                coin.style.right
-            ) || -50;
-
-        right += speed * delta;
-
-        coin.style.right =
-            right + "px";
-
-
-        if (collision(player, coin)) {
-
-            coins++;
-
-            score += 25;
-
-            document.getElementById("coins")
-                .textContent = coins;
-
-            coin.remove();
-
-            sound("coin");
-
-        }
-
-
-        if (right > window.innerWidth + 100) {
-
-            coin.remove();
-
-        }
-
-    });
-
-
-    /* SCORE */
-
-    score += 0.15 * delta;
-
-    document.getElementById("score")
-        .textContent = Math.floor(score);
-
-
-    /* DIFFICULTY */
-
-    speed += 0.0015 * delta;
-
-
-    requestAnimationFrame(gameLoop);
-
+  ctx.restore();
 }
 
+function drawCar(){
 
-/* =========================
-   PAUSE
-========================= */
+  ctx.save();
 
-function togglePause() {
+  ctx.translate(car.x-cameraX,car.y-cameraY);
+  ctx.rotate(car.angle);
 
-    if (!isPlaying)
-        return;
+  const c=cars[save.car];
 
-    isPaused = !isPaused;
+  /* Shadow */
 
-    document.getElementById("pause")
-        .textContent =
-        isPaused ? "▶️" : "⏸️";
+  ctx.fillStyle="#0005";
+  ctx.beginPath();
+  ctx.ellipse(0,52,55,10,0,0,Math.PI*2);
+  ctx.fill();
 
+  /* Suspension */
+
+  ctx.strokeStyle="#222";
+  ctx.lineWidth=5;
+
+  ctx.beginPath();
+  ctx.moveTo(-31,25);
+  ctx.lineTo(-31,43);
+  ctx.moveTo(31,25);
+  ctx.lineTo(31,43);
+  ctx.stroke();
+
+  /* Body */
+
+  ctx.fillStyle=c.color;
+
+  ctx.beginPath();
+  ctx.roundRect(-50,-15,100,42,12);
+  ctx.fill();
+
+  /* Hood */
+
+  ctx.fillStyle=c.color;
+  ctx.beginPath();
+  ctx.moveTo(28,-15);
+  ctx.lineTo(52,-5);
+  ctx.lineTo(50,10);
+  ctx.lineTo(28,10);
+  ctx.closePath();
+  ctx.fill();
+
+  /* Cabin */
+
+  ctx.fillStyle="#17334a";
+
+  ctx.beginPath();
+  ctx.moveTo(-25,-17);
+  ctx.lineTo(-7,-39);
+  ctx.lineTo(23,-39);
+  ctx.lineTo(36,-17);
+  ctx.closePath();
+  ctx.fill();
+
+  /* Windows */
+
+  ctx.fillStyle="#8ddcf7";
+
+  ctx.beginPath();
+  ctx.moveTo(-18,-20);
+  ctx.lineTo(-5,-34);
+  ctx.lineTo(6,-34);
+  ctx.lineTo(6,-20);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(10,-34);
+  ctx.lineTo(21,-34);
+  ctx.lineTo(30,-20);
+  ctx.lineTo(10,-20);
+  ctx.closePath();
+  ctx.fill();
+
+  /* Headlight */
+
+  ctx.fillStyle="#fff7a1";
+  ctx.beginPath();
+  ctx.arc(48,4,6,0,Math.PI*2);
+  ctx.fill();
+
+  /* Wheels */
+
+  drawWheel(-31,29);
+  drawWheel(31,29);
+
+  ctx.restore();
 }
 
+function drawWheel(x,y){
 
-/* =========================
+  ctx.fillStyle="#101010";
+  ctx.beginPath();
+  ctx.arc(x,y,17,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle="#777";
+  ctx.beginPath();
+  ctx.arc(x,y,8,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.strokeStyle="#aaa";
+  ctx.lineWidth=2;
+
+  for(let i=0;i<4;i++){
+    const a=i*Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x+Math.cos(a)*8,y+Math.sin(a)*8);
+    ctx.stroke();
+  }
+}
+
+function drawParticles(){
+
+  ctx.save();
+  ctx.translate(-cameraX,-cameraY);
+
+  for(const p of particles){
+
+    ctx.globalAlpha=Math.max(0,p.life);
+
+    ctx.fillStyle="#d5d5d5";
+
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+  ctx.globalAlpha=1;
+}
+
+/* =========================================================
+   LOOP
+========================================================= */
+function loop(t){
+
+  if(!gameRunning)return;
+
+  if(!lastTime)lastTime=t;
+
+  let dt=Math.min((t-lastTime)/1000,.033);
+  lastTime=t;
+
+  if(!paused){
+    update(dt);
+    draw();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
    GAME OVER
-========================= */
+========================================================= */
+function endGame(){
 
-function endGame() {
+  if(!gameRunning)return;
 
-    if (!isPlaying)
-        return;
+  gameRunning=false;
 
-    isPlaying = false;
+  if(Math.floor(car.distance)>save.best){
+    save.best=Math.floor(car.distance);
+    saveData();
+  }
 
-    sound("gameover");
+  document.getElementById("finalDistance").textContent=
+    Math.floor(car.distance);
 
-    const finalScore =
-        Math.floor(score);
+  document.getElementById("finalCoins").textContent=
+    scoreCoins;
 
-    if (finalScore > bestScore) {
+  document.getElementById("finalBest").textContent=
+    save.best;
 
-        bestScore = finalScore;
+  hide("hud");
+  hide("mobile");
+  show("gameover");
 
-        localStorage.setItem(
-            "endlessBest",
-            bestScore
-        );
-
-    }
-
-    document.getElementById("finalScore")
-        .textContent = finalScore;
-
-    document.getElementById("finalCoins")
-        .textContent = coins;
-
-    document.getElementById("finalBest")
-        .textContent = bestScore;
-
-    document.getElementById("best")
-        .textContent = bestScore;
-
-    document.getElementById("gameOver")
-        .style.display = "flex";
-
+  beep(100,.3);
 }
 
+/* =========================================================
+   PAUSE
+========================================================= */
+function togglePause(){
 
-/* =========================
-   RESTART
-========================= */
+  if(!gameRunning)return;
 
-function restartGame() {
+  paused=!paused;
 
-    document.getElementById("gameOver")
-        .style.display = "none";
-
-    playerBottom = 125;
-
-    velocityY = 0;
-
-    isJumping = false;
-
-    lastTime = 0;
-
-    document.getElementById("pause")
-        .textContent = "⏸️";
-
-    startGame();
-
+  if(paused){
+    show("pause");
+  }else{
+    hide("pause");
+    lastTime=performance.now();
+  }
 }
 
+/* =========================================================
+   UI HELPERS
+========================================================= */
+function show(id){
+  document.getElementById(id).classList.remove("hidden");
+}
 
-/* =========================
-   PREVENT MOBILE SCROLL
-========================= */
+function hide(id){
+  document.getElementById(id).classList.add("hidden");
+}
 
-document.addEventListener("touchmove", function(e) {
+/* =========================================================
+   BUTTONS
+========================================================= */
+document.getElementById("playBtn").onclick=()=>{
+  startGame();
+};
 
-    e.preventDefault();
+document.getElementById("garageBtn").onclick=()=>{
+  hide("menu");
+  renderGarage();
+  show("garage");
+};
 
-}, { passive: false });
+document.getElementById("garageBack").onclick=()=>{
+  hide("garage");
+  show("menu");
+};
 
+document.getElementById("againBtn").onclick=()=>{
+  startGame();
+};
+
+document.getElementById("gameGarage").onclick=()=>{
+  hide("gameover");
+  renderGarage();
+  show("garage");
+};
+
+document.getElementById("homeBtn").onclick=()=>{
+  hide("gameover");
+  show("menu");
+};
+
+document.getElementById("pauseBtn").onclick=()=>{
+  togglePause();
+};
+
+document.getElementById("resumeBtn").onclick=()=>{
+  togglePause();
+};
+
+document.getElementById("quitBtn").onclick=()=>{
+  gameRunning=false;
+  paused=false;
+  hide("pause");
+  hide("hud");
+  hide("mobile");
+  show("menu");
+};
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+renderGarage();
 </script>
-
 </body>
 </html>
-```
