@@ -4,180 +4,424 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Calculator</title>
+
+    <title>My AI Assistant</title>
 
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
         }
 
         body {
-            margin: 0;
-            background: #f2f5f9;
+            background: #0f172a;
+            color: white;
+            height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
 
-        .calculator {
-            background: white;
-            width: 400px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input {
+        .app {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            max-width: 900px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #111827;
+        }
+
+        /* Header */
+
+        .header {
+            padding: 18px 25px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .status {
+            color: #4ade80;
+            font-size: 12px;
+        }
+
+        /* Chat area */
+
+        .chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 75%;
+            padding: 14px 17px;
+            border-radius: 15px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .ai .bubble {
+            background: #1e293b;
+            border-bottom-left-radius: 4px;
+        }
+
+        .user .bubble {
+            background: #2563eb;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Welcome */
+
+        .welcome {
+            text-align: center;
+            margin: 80px 0 40px;
+        }
+
+        .welcome .big-logo {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        .welcome h2 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            color: #94a3b8;
+        }
+
+        /* Input */
+
+        .input-area {
+            padding: 15px 20px 20px;
+            background: #111827;
+            border-top: 1px solid #334155;
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 15px;
+            padding: 7px;
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: white;
+            padding: 10px;
             font-size: 16px;
+            max-height: 120px;
+        }
+
+        textarea::placeholder {
+            color: #94a3b8;
         }
 
         button {
-            width: 100%;
-            margin-top: 25px;
-            padding: 13px;
-            background: #007bff;
-            color: white;
+            width: 45px;
+            height: 45px;
             border: none;
-            border-radius: 8px;
-            font-size: 17px;
+            border-radius: 12px;
+            background: #10b981;
+            color: white;
+            font-size: 20px;
             cursor: pointer;
         }
 
         button:hover {
-            background: #0056b3;
+            background: #059669;
         }
 
-        .result {
-            margin-top: 25px;
-            padding: 20px;
-            background: #f0f7ff;
-            border-radius: 10px;
+        .typing {
+            color: #94a3b8;
+            font-size: 14px;
+            margin: 10px;
+            display: none;
         }
 
-        .result p {
-            font-size: 17px;
-            margin: 10px 0;
+        @media (max-width: 600px) {
+
+            .chat {
+                padding: 15px;
+            }
+
+            .bubble {
+                max-width: 90%;
+            }
+
+            .welcome {
+                margin-top: 50px;
+            }
         }
 
-        .error {
-            color: red;
-            margin-top: 15px;
-            text-align: center;
-        }
     </style>
 </head>
 
+
 <body>
 
-    <div class="calculator">
+<div class="app">
 
-        <h1>Loan Calculator</h1>
+    <!-- Header -->
 
-        <label for="amount">Loan Amount (₹)</label>
-        <input type="number" id="amount" placeholder="Enter loan amount">
+    <div class="header">
 
-        <label for="rate">Annual Interest Rate (%)</label>
-        <input type="number" id="rate" placeholder="Enter interest rate">
+        <div class="logo">
+            🤖
+        </div>
 
-        <label for="years">Loan Tenure (Years)</label>
-        <input type="number" id="years" placeholder="Enter loan tenure">
-
-        <button onclick="calculateLoan()">Calculate Loan</button>
-
-        <div id="error" class="error"></div>
-
-        <div class="result" id="result" style="display: none;">
-            <p><strong>Monthly EMI:</strong> ₹<span id="emi"></span></p>
-            <p><strong>Total Payment:</strong> ₹<span id="totalPayment"></span></p>
-            <p><strong>Total Interest:</strong> ₹<span id="totalInterest"></span></p>
+        <div>
+            <h1>My AI Assistant</h1>
+            <div class="status">
+                ● Online
+            </div>
         </div>
 
     </div>
 
-    <script>
-        function calculateLoan() {
 
-            // Get input values
-            const amount = parseFloat(document.getElementById("amount").value);
-            const annualRate = parseFloat(document.getElementById("rate").value);
-            const years = parseFloat(document.getElementById("years").value);
+    <!-- Chat -->
 
-            const error = document.getElementById("error");
-            const result = document.getElementById("result");
+    <div class="chat" id="chat">
 
-            // Clear previous error
-            error.textContent = "";
+        <div class="welcome">
 
-            // Validate inputs
-            if (!amount || !annualRate || !years ||
-                amount <= 0 || annualRate < 0 || years <= 0) {
+            <div class="big-logo">
+                🤖
+            </div>
 
-                error.textContent = "Please enter valid loan details.";
-                result.style.display = "none";
-                return;
-            }
+            <h2>Hello! 👋</h2>
 
-            // Monthly interest rate
-            const monthlyRate = annualRate / 100 / 12;
+            <p>
+                I'm your AI assistant. Ask me anything!
+            </p>
 
-            // Total number of monthly payments
-            const numberOfPayments = years * 12;
+        </div>
 
-            let emi;
+    </div>
 
-            // EMI calculation
-            if (monthlyRate === 0) {
-                emi = amount / numberOfPayments;
-            } else {
-                emi = amount *
-                    monthlyRate *
-                    Math.pow(1 + monthlyRate, numberOfPayments) /
-                    (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-            }
 
-            // Total payment
-            const totalPayment = emi * numberOfPayments;
+    <div class="typing" id="typing">
+        AI is thinking...
+    </div>
 
-            // Total interest
-            const totalInterest = totalPayment - amount;
 
-            // Display results
-            document.getElementById("emi").textContent =
-                emi.toLocaleString("en-IN", {
-                    maximumFractionDigits: 2
-                });
+    <!-- Input -->
 
-            document.getElementById("totalPayment").textContent =
-                totalPayment.toLocaleString("en-IN", {
-                    maximumFractionDigits: 2
-                });
+    <div class="input-area">
 
-            document.getElementById("totalInterest").textContent =
-                totalInterest.toLocaleString("en-IN", {
-                    maximumFractionDigits: 2
-                });
+        <div class="input-box">
 
-            result.style.display = "block";
+            <textarea
+                id="message"
+                rows="1"
+                placeholder="Message your AI..."
+                onkeydown="handleKey(event)"
+            ></textarea>
+
+            <button onclick="sendMessage()">
+                ➤
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("message");
+    const typing = document.getElementById("typing");
+
+
+    function handleKey(event) {
+
+        if (event.key === "Enter" && !event.shiftKey) {
+
+            event.preventDefault();
+
+            sendMessage();
+
         }
-    </script>
+
+    }
+
+
+    function addMessage(text, sender) {
+
+        const message = document.createElement("div");
+
+        message.className = "message " + sender;
+
+        const bubble = document.createElement("div");
+
+        bubble.className = "bubble";
+
+        bubble.textContent = text;
+
+        message.appendChild(bubble);
+
+        chat.appendChild(message);
+
+        chat.scrollTop = chat.scrollHeight;
+
+    }
+
+
+    function sendMessage() {
+
+        const text = input.value.trim();
+
+        if (text === "") {
+            return;
+        }
+
+
+        // Remove welcome screen
+
+        const welcome = document.querySelector(".welcome");
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+
+        // Add user's message
+
+        addMessage(text, "user");
+
+        input.value = "";
+
+
+        // Show AI thinking
+
+        typing.style.display = "block";
+
+
+        setTimeout(() => {
+
+            typing.style.display = "none";
+
+            const response = generateResponse(text);
+
+            addMessage(response, "ai");
+
+        }, 800);
+
+    }
+
+
+    /*
+       Simple AI response system
+       --------------------------------
+       This is NOT a real LLM.
+       It demonstrates how the chatbot interface works.
+    */
+
+    function generateResponse(message) {
+
+        const text = message.toLowerCase();
+
+
+        if (
+            text.includes("hello") ||
+            text.includes("hi") ||
+            text.includes("hey")
+        ) {
+
+            return "Hello! 👋 Nice to meet you! How can I help you today?";
+
+        }
+
+
+        if (text.includes("who are you")) {
+
+            return "I'm your personal AI assistant 🤖. You can connect me to a real AI model to make me much more intelligent.";
+
+        }
+
+
+        if (text.includes("your name")) {
+
+            return "You can call me My AI Assistant. 😊";
+
+        }
+
+
+        if (text.includes("html")) {
+
+            return "HTML is used to create the structure of websites. CSS makes them beautiful, and JavaScript makes them interactive.";
+
+        }
+
+
+        if (text.includes("javascript")) {
+
+            return "JavaScript is a programming language commonly used to add interaction and logic to websites.";
+
+        }
+
+
+        if (text.includes("thank")) {
+
+            return "You're very welcome! ❤️";
+
+        }
+
+
+        if (
+            text.includes("bye") ||
+            text.includes("goodbye")
+        ) {
+
+            return "Goodbye! 👋 Come back anytime.";
+
+        }
+
+
+        return "That's interesting! 🤔 I'm currently a demo AI, so I don't have the intelligence of ChatGPT yet. Connect this interface to an AI API and I'll be able to answer much more sophisticated questions.";
+
+    }
+
+</script>
 
 </body>
 </html>
